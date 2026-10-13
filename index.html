@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Control de góndola</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf-autotable.min.js"></script>
+<link rel="stylesheet" href="./css/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-boxes"><span></span><span></span><span></span></div>
+  <div class="splash-text">Cargando góndola...</div>
+</div>
+
+<div class="wrap">
+  <header class="topnav">
+    <div class="nav-row">
+      <img id="brand-logo" class="nav-logo" alt="Logo">
+      <h1 class="nav-title">Control </h1>
+      <div class="nav-spacer"></div>
+      <button class="nav-icon-btn only-wide" id="nav-search-btn" aria-label="Buscar">🔍</button>
+      <button class="nav-icon-btn only-wide" id="btn-share" aria-label="Compartir por QR"><i class="ti ti-truck-delivery"></i></button>
+      <button class="nav-icon-btn only-wide" id="btn-logo" aria-label="Logo">🖼</button>
+      <div class="nav-clock-wrap">
+        <div class="nav-clock mono" id="nav-clock">--:--</div>
+        <div class="nav-sync" id="synctag">local</div>
+      </div>
+      <button class="nav-icon-btn" id="nav-menu-btn" aria-label="Menú"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-menu-2">
+	<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+	<path d="M4 6l16 0" />
+	<path d="M4 12l16 0" />
+	<path d="M4 18l16 0" />
+</svg></button>
+    </div>
+    <div class="nav-search-row" id="nav-search-row">
+      <input type="text" id="search" placeholder="Buscar por nombre o código...">
+    </div>
+
+    <div class="nav-menu-panel" id="nav-menu-panel">
+      <div class="nav-menu-actions">
+        <button class="nav-menu-action" id="menu-search-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-search">
+	<path stroke="none" d="M0 0h24v24H0z" fill="none" />
+	<path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+	<path d="M21 21l-6 -6" />
+</svg>Buscar</button>
+        <button class="nav-menu-action" id="menu-qr-btn"><span><i class="ti ti-truck-delivery"></i></span>Compartir QR</button>
+        <button class="nav-menu-action" id="menu-logo-btn"><span>🖼</span>Logo</button>
+        <button class="nav-menu-action" id="menu-print-btn"><span>🖨</span>Imprimir</button>
+        <button class="nav-menu-action" id="menu-pdf-btn"><span>⬇</span>Descargar PDF</button>
+      </div>
+
+      <button class="accordion-head" id="accordion-head">
+        <span>Sistema</span>
+        <span class="accordion-arrow" id="accordion-arrow">⌄</span>
+      </button>
+      <div class="accordion-body" id="accordion-body"></div>
+    </div>
+  </header>
+
+  <div class="expiry-alert" id="expiry-alert">
+    <span class="ico">⚠️</span>
+    <span id="expiry-alert-text"></span>
+  </div>
+
+  <button class="qr-main-btn" id="btn-qr-main">
+    <span>📲</span> Generar QR para pasar a otro dispositivo
+  </button>
+
+  <div class="sector-tabs" id="sector-tabs"></div>
+
+  <div class="stat-row">
+    <div class="stat"><div class="n mono" id="stat-skus">0</div><div class="l">productos</div></div>
+    <div class="stat"><div class="n mono" id="stat-units">0</div><div class="l">en góndola</div></div>
+  </div>
+
+  <div class="scan-panel">
+    <button class="scan-btn" id="btn-scan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M3 7V4a1 1 0 0 1 1-1h3"/><path d="M17 3h3a1 1 0 0 1 1 1v3"/>
+        <path d="M21 17v3a1 1 0 0 1-1 1h-3"/><path d="M7 21H4a1 1 0 0 1-1-1v-3"/>
+        <line x1="7" y1="7" x2="7" y2="17"/><line x1="10.5" y1="7" x2="10.5" y2="17"/>
+        <line x1="14" y1="7" x2="14" y2="17"/><line x1="17.5" y1="7" x2="17.5" y2="17"/>
+      </svg>
+      Escanear producto
+    </button>
+
+    <div id="reader-wrap">
+      <div id="reader"></div>
+      <div class="scan-hint" id="scan-hint">Apuntá la cámara al código de barras</div>
+      <button class="cancel-scan" id="btn-cancel-scan">Cancelar</button>
+    </div>
+
+    <div class="manual-row">
+      <input type="text" id="manual-code" inputmode="numeric" placeholder="o escribí el código manualmente">
+      <button id="btn-manual">Buscar</button>
+    </div>
+  </div>
+
+  <div class="export-row" id="export-row">
+    <button class="export-btn" id="btn-print">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8"/>
+      </svg>
+      Imprimir
+    </button>
+    <button class="export-btn" id="btn-pdf">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
+      </svg>
+      Descargar PDF
+    </button>
+  </div>
+
+  <div class="expiry-filters">
+    <button class="expiry-chip active" data-filter="todos">Todos</button>
+    <button class="expiry-chip" data-filter="vencidos">⚠ Vencidos <span class="n"></span></button>
+    <button class="expiry-chip" data-filter="proximos">⏰ Por vencer <span class="n"></span></button>
+    <label class="days-setting">alertar ≤<input type="number" id="alert-days" min="1" value="30">días</label>
+  </div>
+
+  <div class="list-title">Productos en góndola</div>
+  <div class="product-list" id="product-list"></div>
+  <div class="empty" id="empty-msg" style="display:none;">Todavía no escaneaste ningún producto.</div>
+</div>
+
+<!-- ficha de producto (vista para el reponedor / cliente) -->
+<div class="modal-backdrop" id="ficha-modal-backdrop">
+  <div class="modal">
+    <div class="ficha-head">
+      <div class="ficha-name" id="ficha-name"></div>
+      <div class="ficha-code mono" id="ficha-code"></div>
+    </div>
+    <div class="ficha-row" style="gap:10px; margin-top:14px;">
+      <div class="ficha-block">
+        <div class="l">Sector</div>
+        <div class="v" id="ficha-sector"></div>
+      </div>
+      <div class="ficha-block">
+        <div class="l">Vencimiento</div>
+        <div class="v" id="ficha-expiry"></div>
+      </div>
+    </div>
+    <div class="ficha-qtys">
+      <div class="ficha-qty-block">
+        <div class="l">En góndola</div>
+        <div class="qty-ctrl big">
+          <button id="ficha-minus">−</button>
+          <div class="q" id="ficha-qty">0</div>
+          <button id="ficha-plus">+</button>
+        </div>
+      </div>
+      <div class="ficha-qty-block">
+        <div class="l">En depósito</div>
+        <div class="v" id="ficha-deposito">—</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="ficha-edit">Editar</button>
+      <button class="btn-primary" id="ficha-close">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- alta / edición de producto -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <h2 id="modal-title">Producto nuevo</h2>
+    <div class="code mono" id="modal-code"></div>
+    <label for="modal-name">Nombre del producto</label>
+    <input type="text" id="modal-name" placeholder="Ej: Cofler leche 55g x10">
+    <div class="modal-row-2">
+      <div>
+        <label for="modal-sector">Sector</label>
+        <select id="modal-sector">
+          <option value="comida">Comida</option>
+          <option value="bebida">Bebida</option>
+          <option value="limpieza">Limpieza</option>
+        </select>
+      </div>
+      <div>
+        <label for="modal-qty">Cantidad en góndola</label>
+        <input type="number" id="modal-qty" min="0" value="1" inputmode="numeric">
+      </div>
+    </div>
+    <label for="modal-expiry">Fecha de vencimiento (opcional)</label>
+    <input type="date" id="modal-expiry">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="modal-cancel">Cancelar</button>
+      <button class="btn-primary" id="modal-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- logo -->
+<div class="modal-backdrop" id="logo-modal-backdrop">
+  <div class="modal">
+    <h2>Logo de la empresa</h2>
+    <div class="code mono">Se usa en el encabezado, al imprimir y en el PDF</div>
+    <label for="logo-file">Elegí una imagen (PNG o JPG)</label>
+    <input type="file" id="logo-file" accept="image/png,image/jpeg">
+    <img class="logo-modal-preview" id="logo-preview" alt="Vista previa del logo">
+    <div class="modal-actions">
+      <button class="btn-ghost" id="logo-remove">Quitar logo</button>
+      <button class="btn-primary" id="logo-cancel">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- compartir por QR -->
+<div class="modal-backdrop share-modal" id="share-modal-backdrop">
+  <div class="modal">
+    <h2>Compartir información</h2>
+    <div class="code mono">Enviá la góndola a otro dispositivo, o recibí stock del depósito</div>
+
+    <div class="share-tabs">
+      <button class="share-tab active" id="tab-send" data-pane="send">Enviar (tengo la info)</button>
+      <button class="share-tab" id="tab-recv" data-pane="recv">Recibir (del depósito u otra góndola)</button>
+    </div>
+
+    <div class="share-pane active" id="pane-send">
+      <div class="qr-stage">
+        <div class="qr-canvas-wrap"><img id="qr-canvas" alt="Código QR" width="240" height="240"></div>
+        <div class="qr-progress" id="qr-progress">Generá el código para empezar</div>
+        <div class="qr-controls" id="qr-controls" style="display:none;">
+          <button id="qr-prev">‹ anterior</button>
+          <button id="qr-playpause">Pausar</button>
+          <button id="qr-next">siguiente ›</button>
+        </div>
+        <div class="qr-hint">En el otro dispositivo abrí esta app (o la de Control de depósito), tocá "⇄ QR" → "Recibir" y apuntá la cámara a esta pantalla.</div>
+      </div>
+    </div>
+
+    <div class="share-pane" id="pane-recv">
+      <div id="recv-reader"></div>
+      <div class="recv-progress-bar"><div id="recv-progress-fill"></div></div>
+      <div class="recv-status" id="recv-status">Tocá "Empezar a recibir" y apuntá al otro dispositivo</div>
+      <div class="qr-controls" style="justify-content:center; margin-top:10px;">
+        <button id="recv-start">Empezar a recibir</button>
+        <button id="recv-stop" style="display:none;">Detener</button>
+      </div>
+      <div class="recv-summary" id="recv-summary" style="display:none;"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-ghost" id="share-close">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="print-report"></div>
+
+<script src="./java/qr.js"></script>
+<script src="./java/script.js"></script>
+</body>
+</html>
